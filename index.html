@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einmaleins-Spiel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: linear-gradient(to bottom, #f0f8ff, #e6e6fa);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 20px 0;
+            color: #4a90e2;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #aufgabe {
+            font-size: 2em;
+            background: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .spielfeld-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .spielfeld {
+            width: 45%;
+            height: 500px;
+            margin: 10px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .zahl {
+            position: absolute;
+            font-size: 1.5em;
+            text-align: center;
+            background: #ffcc00;
+            color: white;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            line-height: 70px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            animation: falling linear infinite;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .zahl:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes falling {
+            from {
+                top: -80px;
+            }
+            to {
+                top: 520px;
+            }
+        }
+
+        #punkte {
+            font-size: 1.5em;
+            margin-top: 20px;
+            color: #4a90e2;
+        }
+
+        #punkte div {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 5px 0;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Einmaleins-Spiel</h1>
+
+    <div id="aufgabe"></div>
+
+    <div class="spielfeld-container">
+        <div class="spielfeld" id="feld1"></div>
+        <div class="spielfeld" id="feld2"></div>
+    </div>
+
+    <div id="punkte">
+        <div>Feld 1 Punkte: <span id="punkteFeld1">0</span></div>
+        <div>Feld 2 Punkte: <span id="punkteFeld2">0</span></div>
+    </div>
+
+    <script>
+        let punkteFeld1 = 0;
+        let punkteFeld2 = 0;
+        let aktuelleAufgabe = {};
+
+        function neueAufgabe() {
+            let a = Math.floor(Math.random() * 9) + 2;
+            let b = Math.floor(Math.random() * 9) + 2;
+            aktuelleAufgabe = { a, b, ergebnis: a * b };
+            document.getElementById('aufgabe').innerHTML = `${a} × ${b} = ?`;
+
+            generiereZahlen('feld1');
+            generiereZahlen('feld2');
+        }
+
+        function generiereZahlen(feldId) {
+            const feld = document.getElementById(feldId);
+            feld.innerHTML = '';
+
+            let richtigeAntwortHinzugefügt = false;
+
+            for (let i = 0; i < 5; i++) {
+                const zahl = document.createElement('div');
+                zahl.className = 'zahl';
+
+                let zufallsZahl;
+                if (!richtigeAntwortHinzugefügt && Math.random() > 0.8) {
+                    zufallsZahl = aktuelleAufgabe.ergebnis;
+                    richtigeAntwortHinzugefügt = true;
+                } else {
+                    zufallsZahl = Math.floor(Math.random() * 81) + 1;
+                }
+
+                zahl.textContent = zufallsZahl;
+
+                const zufälligePosition = Math.random() * 80 + 10; // Horizontale Position
+                zahl.style.left = `${zufälligePosition}%`;
+                zahl.style.animationDuration = `${Math.random() * 3 + 4}s`; // Zufällige Geschwindigkeit
+
+                zahl.onclick = () => pruefeAntwort(feldId === 'feld1' ? 1 : 2, parseInt(zahl.textContent));
+                feld.appendChild(zahl);
+            }
+
+            if (!richtigeAntwortHinzugefügt) {
+                const zahl = document.createElement('div');
+                zahl.className = 'zahl';
+                zahl.textContent = aktuelleAufgabe.ergebnis;
+                const zufälligePosition = Math.random() * 80 + 10; // Horizontale Position
+                zahl.style.left = `${zufälligePosition}%`;
+                zahl.style.animationDuration = `${Math.random() * 3 + 4}s`; // Zufällige Geschwindigkeit
+
+                zahl.onclick = () => pruefeAntwort(feldId === 'feld1' ? 1 : 2, aktuelleAufgabe.ergebnis);
+                feld.appendChild(zahl);
+            }
+        }
+
+        function pruefeAntwort(feld, antwort) {
+            if (aktuelleAufgabe.ergebnis === antwort) {
+                if (feld === 1) punkteFeld1++;
+                if (feld === 2) punkteFeld2++;
+            } else {
+                if (feld === 1) punkteFeld1--;
+                if (feld === 2) punkteFeld2--;
+            }
+
+            document.getElementById('punkteFeld1').textContent = punkteFeld1;
+            document.getElementById('punkteFeld2').textContent = punkteFeld2;
+
+            neueAufgabe();
+        }
+
+        neueAufgabe();
+    </script>
+
+</body>
+</html>
